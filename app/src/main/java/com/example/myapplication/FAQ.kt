@@ -2,11 +2,13 @@ package com.example.myapplication
 
 import android.app.DownloadManager
 import android.content.Context
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.view.*
 import android.webkit.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 
 
@@ -24,9 +26,18 @@ class FAQ : Fragment() {
         createDownloadListener()
 
         val mWebView = view.findViewById<View>(R.id.webView) as WebView
-        mWebView.loadUrl("http://info-ic.tec.siua.ac.cr/index.php/preguntas_frecuentes/")
 
         val webSetting = mWebView.settings
+
+        if(checkConnectivity()){
+            webSetting.cacheMode = WebSettings.LOAD_DEFAULT
+            mWebView.loadUrl("http://info-ic.tec.siua.ac.cr/index.php/preguntas_frecuentes/")
+        } else {
+            webSetting.cacheMode = WebSettings.LOAD_CACHE_ONLY
+            mWebView.loadUrl("http://info-ic.tec.siua.ac.cr/index.php/preguntas_frecuentes/")
+            Toast.makeText(requireActivity(), "No hay conexión a internet. Copia local cargada.",
+                Toast.LENGTH_LONG).show()
+        }
         webSetting.javaScriptEnabled = true
         mWebView.webViewClient = WebViewClient()
 
@@ -59,6 +70,14 @@ class FAQ : Fragment() {
             val downloadManager = requireActivity().getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadManager.enqueue(request)
         }
+    }
+
+    private fun checkConnectivity() :Boolean{
+        val cm =
+            requireActivity().applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork = cm.activeNetworkInfo
+        val isConnected = activeNetwork != null && activeNetwork.isConnectedOrConnecting
+        return isConnected
     }
 
 }
